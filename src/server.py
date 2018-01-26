@@ -5,30 +5,39 @@ from controlMessage import ControlMessage
 from controlMessage import ControlMessageCode
 from flask import Flask
 from flask import request
-app = Flask(__name__)
 import json
+
+app = Flask(__name__)
 
 manager = StockMarketManager()
 manager.loadListOfStocks()
 
-@app.route("/")
-def hello():
+@app.route("/servidorBolsaDeValores")
+def servidorBolsaDeValores():
 	manager.printListOfStocks()
 	return "<h1>WebServiceServerPython</h1>"
 
-@app.route("/Post")
+@app.route("/servidorBolsaDeValores/Post", methods=['POST'])
 def post():
-	# TODO
-	return ""
-
-@app.route("/Poll")
+	bid = request.get_json()
+	result = manager.registerBid(bid)
+	if result:
+		return ControlMessage(ControlMessageCode.ACK).toJson()
+	else:
+		return ControlMessage(ControlMessageCode.NACK).toJson()
+	
+@app.route("/servidorBolsaDeValores/Poll")
 def poll():
-	#TODO
-	return ""
+	stockName = request.args.get('stockName')
+	clientId = request.args.get('clientId')
+	return "nack"	
+	#manager.computeBids()
+	#manager.removeAlreadyNotifiedBids()
+	#return manager.poll()
 
 # Usado para informar o valor de uma única ação.
 # Retorna um json de um objeto Stock com o preço da ação no servidor.
-@app.route("/GetPrice")
+@app.route("/servidorBolsaDeValores/GetPrice")
 def getPrice():
 	result = manager.getStockNamed(request.args.get('stockName'))
 	if result is None:
@@ -37,13 +46,13 @@ def getPrice():
 		return json.dumps(result.__dict__)
 
 # Retorna um json com uma lista de todas as ações
-@app.route("/ListAll")
+@app.route("/servidorBolsaDeValores/ListAll")
 def listAll():
 	listOfStocks = manager.listOfStocks
 	return json.dumps([stock.__dict__ for stock in listOfStocks])
 
 # Página para debug
-@app.route("/debug")
+@app.route("/servidorBolsaDeValores/debug")
 def debug():
 	output = '<h2>Lista de ações</h2>'
 	output += manager.getListOfStocksAsString()

@@ -26,6 +26,8 @@ def poll():
 	#TODO
 	return ""
 
+# Usado para informar o valor de uma única ação.
+# Retorna um json de um objeto Stock com o preço da ação no servidor.
 @app.route("/GetPrice")
 def getPrice():
 	result = manager.getStockNamed(request.args.get('stockName'))
@@ -34,10 +36,13 @@ def getPrice():
 	else:
 		return json.dumps(result.__dict__)
 
+# Retorna um json com uma lista de todas as ações
 @app.route("/ListAll")
 def listAll():
-	return manager.listOfStocks
+	listOfStocks = manager.listOfStocks
+	return json.dumps([stock.__dict__ for stock in listOfStocks])
 
+# Página para debug
 @app.route("/debug")
 def debug():
 	output = '<h2>Lista de ações</h2>'

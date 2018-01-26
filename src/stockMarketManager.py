@@ -1,4 +1,5 @@
 from stock import Stock
+import random
 
 # Classe que gerencia o estados das ações e lances de compra e venda
 class StockMarketManager(object):
@@ -11,12 +12,12 @@ class StockMarketManager(object):
 
 	# Carrega a lista de ações a partir de um arquivo de texto
 	def loadListOfStocks(self):
-		# TODO
-		s1 = Stock('ABC', 1.0, 4.5)
-		s2 = Stock('XYZ', 3.2, 5.1)
-
-		self.listOfStocks.append(s1)
-		self.listOfStocks.append(s2)
+		f = open('listaDeAcoes.txt', 'r')
+		fileLines = f.readlines()
+		for line in fileLines:
+			price = random.uniform(10, 100)
+			s = Stock(line, round(price, 2), 0)
+			self.listOfStocks.append(s)
 
 	# Imprime a lista de ações do servidor
 	def printListOfStocks(self):

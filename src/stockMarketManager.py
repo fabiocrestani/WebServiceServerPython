@@ -1,4 +1,6 @@
 from stock import Stock
+from controlMessage import ControlMessage
+from controlMessage import ControlMessageCode
 import random
 
 # Classe que gerencia o estados das ações e lances de compra e venda
@@ -16,7 +18,7 @@ class StockMarketManager(object):
 		fileLines = f.readlines()
 		for line in fileLines:
 			price = random.uniform(10, 100)
-			s = Stock(line, round(price, 2), 0)
+			s = Stock(line.strip('\n'), round(price, 2), 0)
 			self.listOfStocks.append(s)
 
 	# Imprime a lista de ações do servidor
@@ -44,3 +46,15 @@ class StockMarketManager(object):
 		for b in self.listOfSellers:
 			output += '<p>' + b.toString() + '</p>'
 		return output
+
+	# Retorna um objeto Stock cujo stockName foi passado como parâmetro
+	def getStockNamed(self, stockName):
+		if stockName is None:
+			return None
+		else:
+			for s in self.listOfStocks:
+				if s.stockName == stockName:
+					return s
+		return None	
+			
+

@@ -1,8 +1,12 @@
 from stock import Stock
 from bid import Bid
 from stockMarketManager import StockMarketManager
+from controlMessage import ControlMessage
+from controlMessage import ControlMessageCode
 from flask import Flask
+from flask import request
 app = Flask(__name__)
+import json
 
 manager = StockMarketManager()
 manager.loadListOfStocks()
@@ -10,7 +14,25 @@ manager.loadListOfStocks()
 @app.route("/")
 def hello():
 	manager.printListOfStocks()
-	return "Hello, World!"
+	return "<h1>WebServiceServerPython</h1>"
+
+@app.route("/Post")
+def post():
+	# TODO
+	return ""
+
+@app.route("/Poll")
+def poll():
+	#TODO
+	return ""
+
+@app.route("/GetPrice")
+def getPrice():
+	result = manager.getStockNamed(request.args.get('stockName'))
+	if result is None:
+		return ControlMessage(ControlMessageCode.NACK).toJson()
+	else:
+		return json.dumps(result.__dict__)
 
 @app.route("/ListAll")
 def listAll():

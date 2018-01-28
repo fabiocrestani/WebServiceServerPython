@@ -17,7 +17,7 @@ class Bid(object):
 		self.type = type
 
 	def toString(self):
-		s = 'Lance de ' 
+		s = 'Client ' + str(self.clientId) + '. Lance de ' 
 		if self.type == BidType.SELL:
 			s += 'venda'
 		elif self.type == BidType.BUY:

@@ -60,6 +60,7 @@ class StockMarketManager(object):
 					return s
 		return None	
 
+	# Registra uma ordem de compra ou venda de ações
 	def registerBid(self, bidInputed):
 		print("bid recebido: " + str(bidInputed))
 		bid = Bid(bidInputed['stockName'], bidInputed['negotiatedPrice'],
@@ -100,6 +101,7 @@ class StockMarketManager(object):
 		print("registerBid: Novo lance registrado com sucesso")
 		return True
 
+	# Verifica se tem pares de compra e venda da mesma ação
 	def computeBids(self):
 		for buyer in self.listOfBuyers:
 			for seller in self.listOfSellers:
@@ -111,16 +113,70 @@ class StockMarketManager(object):
 				   (buyer.quantity > 0):
 					self.doTransaction(buyer, seller)
 
+	# Faz uma transação
 	def doTransaction(self, buyer, seller):
-		# TODO
-		return None
+		newPrice = (seller.negotiatedPrice + buyer.negotiatedPrice) / 2
+		transactionedQuantity = 0
+		if buyer.quantity > seller.quantity:
+			transactionedQuantity = seller.quantity
+		else:
+			transactionedQuantity = buyer.quantity
 
+		buyer.quantity = transactionedQuantity
+		seller.quantity = transactionedQuantity
+		buyer.negotiatedPrice = newPrice
+		seller.negotiatedPrice = newPrice
+
+		self.updatePriceOfStock(buyer.stockName, newPrice)
+
+		buyer.status = BidStatus.DONE
+		seller.status = BidStatus.DONE
+
+		print("Nova transação efetuada:")
+		print("Cliente " + str(seller.clientId) + " vendeu " + \
+				str(transactionedQuantity) + " ações " + seller.stockName + \
+				" por R$" + str(newPrice))
+		print("Client " + str(buyer.clientId) + " comprou " + \
+				str(transactionedQuantity) + " ações " + buyer.stockName + \
+				" por R$" + str(newPrice))
+		return True
+
+	# Atualiza o preço de uma ação na lista do servidor.
+	def updatePriceOfStock(self, stockName, newPrice):
+		for s in self.listOfStocks:
+			if s.name == stockName:
+				s.price = newPrice
+				return True
+		return False
+
+	# Remove do servidor os lances já notificados aos clientes.
 	def removeAlreadyNotifiedBids(self):
-		# TODO
+		self.listOfBuyers[:] = [x for x in self.listOfBuyers if not \
+								x.status == BidStatus.SENT_TO_CLIENT]
+		self.listOfSellers[:] = [x for x in self.listOfSellers if not \
+								x.status == BidStatus.SENT_TO_CLIENT]
 		return None
 
-	def poll(self):
-		# TODO
+	# Responde ao polling dos clientes.
+	def poll(self, stockName, clientId):
+		print("Polling de cliente " + str(clientId) + " da ação " + stockName)
+
+		self.computeBids()
+		self.removeAlreadyNotifiedBids()
+		
+		for b in self.listOfSellers:
+			if b.stockName == stockName and str(b.clientId) == clientId and \
+			   b.status == BidStatus.DONE:
+				b.status = BidStatus.SENT_TO_CLIENT
+				return b
+
+
+		for b in self.listOfBuyers:
+			if b.stockName == stockName and str(b.clientId) == clientId and \
+			   b.status == BidStatus.DONE:
+				b.status = BidStatus.SENT_TO_CLIENT
+				return b
+		
 		return None
 			
 
